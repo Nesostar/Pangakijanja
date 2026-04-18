@@ -14,6 +14,12 @@ import AddRoom from "./pages/AddRoom"
 import Listings from "./pages/Listings"
 import Analytics from "./pages/Analytics"
 import Featured from "./pages/Featured"
+import Rooms from "./pages/Rooms"
+import Bookings from "./pages/Bookings"
+import Notifications from "./pages/Notifications"
+import Account from "./pages/Account"
+import Support from "./pages/Support"
+import Pricing from "./pages/Pricing"
 
 // Components
 import ProtectedRoute from "./components/ProtectedRoute"
@@ -119,6 +125,12 @@ function App() {
         }
       />
 
+<Route path="/rooms" element={<Rooms />} />
+<Route path="/bookings" element={<Bookings />} />
+<Route path="/notifications" element={<Notifications />} />
+<Route path="/account" element={<Account />} />
+<Route path="/support" element={<Support />} />
+<Route path="/pricing" element={<Pricing />} />
       {/* FALLBACK */}
       <Route path="*" element={<Navigate to="/" replace />} />
 

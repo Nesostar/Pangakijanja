@@ -10,51 +10,52 @@ export default function Login() {
   const navigate = useNavigate()
 
   const handleLogin = async (e) => {
-  e.preventDefault()
-  if (loading) return
+    e.preventDefault()
+    if (loading) return
 
-  setLoading(true)
-  setError("")
+    setLoading(true)
+    setError("")
 
-  try {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-    if (error) {
-      setError(error.message)
+      if (error) {
+        setError(error.message)
+        setLoading(false)
+        return
+      }
+
+      // 🔥 Get role
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", data.user.id)
+        .single()
+
+      if (profileError || !profile) {
+        setError("Profile not found. Contact support.")
+        setLoading(false)
+        return
+      }
+
+      // ✅ Redirect based on role
+      if (profile.role === "admin") {
+        navigate("/admin-dashboard")
+      } else if (profile.role === "dalali") {
+        navigate("/dalali-dashboard")
+      } else {
+        navigate("/dashboard")
+      }
+
+    } catch (err) {
+      setError("Something went wrong")
       setLoading(false)
-      return
     }
-
-    // 🔥 Get role immediately
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", data.user.id)
-      .single()
-
-    if (profileError || !profile) {
-      setError("Profile not found")
-      setLoading(false)
-      return
-    }
-
-    // ✅ Direct correct redirect (NO delay, NO flicker)
-    if (profile.role === "admin") {
-      navigate("/admin-dashboard", { replace: true })
-    } else if (profile.role === "dalali") {
-      navigate("/dalali-dashboard", { replace: true })
-    } else {
-      navigate("/dashboard", { replace: true })
-    }
-
-  } catch (err) {
-    setError("Something went wrong")
-    setLoading(false)
   }
-}
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white shadow-lg rounded-xl p-8 w-full max-w-md">

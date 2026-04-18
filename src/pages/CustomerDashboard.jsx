@@ -29,6 +29,11 @@ export default function CustomerDashboard() {
     fetchProfile()
   }, [user])
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    navigate("/")
+  }
+
   if (!profile) return <div className="p-10">Loading...</div>
 
   return (
@@ -41,10 +46,10 @@ export default function CustomerDashboard() {
         </div>
 
         <div className="hidden md:flex gap-8 text-gray-700 font-medium">
-          <a href="#">Platform</a>
-          <a href="#">Rooms</a>
-          <a href="#">Support</a>
-          <a href="#">Pricing</a>
+          <button onClick={() => navigate("/dashboard")}>Platform</button>
+          <button onClick={() => navigate("/rooms")}>Rooms</button>
+          <button onClick={() => navigate("/support")}>Support</button>
+          <button onClick={() => navigate("/pricing")}>Pricing</button>
         </div>
 
         <div className="flex gap-4">
@@ -57,8 +62,18 @@ export default function CustomerDashboard() {
             </button>
           )}
 
-          <button className="px-6 py-2 rounded-full bg-blue-900 text-white font-semibold hover:bg-blue-800 transition">
+          <button
+            onClick={() => navigate("/account")}
+            className="px-6 py-2 rounded-full bg-blue-900 text-white font-semibold hover:bg-blue-800 transition"
+          >
             Account
+          </button>
+
+          <button
+            onClick={handleLogout}
+            className="px-4 py-2 rounded bg-red-500 text-white"
+          >
+            Logout
           </button>
         </div>
       </nav>
@@ -75,11 +90,17 @@ export default function CustomerDashboard() {
         </p>
 
         <div className="flex gap-6 mt-10">
-          <button className="px-8 py-4 rounded-full bg-blue-900 text-white text-lg font-semibold hover:bg-blue-800 transition shadow-lg">
+          <button
+            onClick={() => navigate("/rooms")}
+            className="px-8 py-4 rounded-full bg-blue-900 text-white text-lg font-semibold hover:bg-blue-800 transition shadow-lg"
+          >
             Browse Rooms
           </button>
 
-          <button className="px-8 py-4 rounded-full border border-blue-900 text-blue-900 text-lg font-semibold hover:bg-blue-50 transition">
+          <button
+            onClick={() => navigate("/bookings")}
+            className="px-8 py-4 rounded-full border border-blue-900 text-blue-900 text-lg font-semibold hover:bg-blue-50 transition"
+          >
             View Bookings
           </button>
         </div>
@@ -87,7 +108,11 @@ export default function CustomerDashboard() {
 
       {/* Dashboard Cards */}
       <div className="mt-24 px-10 pb-20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <div className="p-6 bg-white/80 backdrop-blur-lg rounded-2xl shadow-md hover:shadow-xl transition">
+
+        <div
+          onClick={() => navigate("/rooms")}
+          className="p-6 bg-white/80 backdrop-blur-lg rounded-2xl shadow-md hover:shadow-xl transition cursor-pointer"
+        >
           <h2 className="font-semibold text-xl mb-3 text-blue-900">
             Available Rooms
           </h2>
@@ -96,7 +121,10 @@ export default function CustomerDashboard() {
           </p>
         </div>
 
-        <div className="p-6 bg-white/80 backdrop-blur-lg rounded-2xl shadow-md hover:shadow-xl transition">
+        <div
+          onClick={() => navigate("/bookings")}
+          className="p-6 bg-white/80 backdrop-blur-lg rounded-2xl shadow-md hover:shadow-xl transition cursor-pointer"
+        >
           <h2 className="font-semibold text-xl mb-3 text-blue-900">
             Your Bookings
           </h2>
@@ -105,7 +133,10 @@ export default function CustomerDashboard() {
           </p>
         </div>
 
-        <div className="p-6 bg-white/80 backdrop-blur-lg rounded-2xl shadow-md hover:shadow-xl transition">
+        <div
+          onClick={() => navigate("/notifications")}
+          className="p-6 bg-white/80 backdrop-blur-lg rounded-2xl shadow-md hover:shadow-xl transition cursor-pointer"
+        >
           <h2 className="font-semibold text-xl mb-3 text-blue-900">
             Notifications
           </h2>
@@ -113,8 +144,8 @@ export default function CustomerDashboard() {
             Stay updated with booking alerts and messages.
           </p>
         </div>
-      </div>
 
+      </div>
     </div>
   )
 }
