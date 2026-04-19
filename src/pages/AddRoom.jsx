@@ -16,11 +16,10 @@ export default function AddRoom() {
   const [preview, setPreview] = useState([])
   const [loading, setLoading] = useState(false)
 
-  // 🔥 PACKAGE LOGIC
   const userPackage = profile?.package || "Primary"
   const limit = PACKAGE_LIMITS[userPackage].listings
 
-  // ✅ MULTIPLE IMAGE APPEND (FIXED)
+  // 📸 ADD IMAGES
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files)
 
@@ -40,10 +39,6 @@ export default function AddRoom() {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    console.log("🚀 SUBMIT CLICKED")
-    console.log("USER:", user)
-    console.log("PACKAGE:", userPackage)
-
     if (!user) {
       alert("User not logged in ❌")
       return
@@ -57,17 +52,11 @@ export default function AddRoom() {
     setLoading(true)
 
     try {
-      // 🔥 CHECK ROOM LIMIT
-      const { count, error: countError } = await supabase
+      // 🔥 CHECK LIMIT
+      const { count } = await supabase
         .from("rooms")
         .select("*", { count: "exact", head: true })
         .eq("owner_id", user.id)
-
-      console.log("ROOM COUNT:", count)
-
-      if (countError) {
-        console.error(countError)
-      }
 
       if (count >= limit) {
         alert(`🚫 Limit reached (${limit} rooms for ${userPackage})`)
@@ -75,14 +64,35 @@ export default function AddRoom() {
         return
       }
 
-      let imageUrls = []
+      // ✅ 1. INSERT ROOM FIRST
+      const { data: roomData, error: roomError } = await supabase
+        .from("rooms")
+        .insert([
+          {
+            title,
+            price,
+            location,
+            room_type: roomType,
+            owner_id: user.id, // 🔥 REQUIRED FOR RLS
+          },
+        ])
+        .select()
+        .single()
 
-      // 📸 UPLOAD IMAGES
+      if (roomError) {
+        console.error(roomError)
+        alert(roomError.message)
+        setLoading(false)
+        return
+      }
+
+      const roomId = roomData.id
+
+      // ✅ 2. UPLOAD IMAGES + SAVE TO room_images
       for (let file of images) {
         const fileName = `${user.id}/${Date.now()}_${file.name}`
 
-        console.log("Uploading:", fileName)
-
+        // upload to storage
         const { error: uploadError } = await supabase.storage
           .from("rooms")
           .upload(fileName, file)
@@ -94,43 +104,36 @@ export default function AddRoom() {
           return
         }
 
+        // get public url
         const { data } = supabase.storage
           .from("rooms")
           .getPublicUrl(fileName)
 
-        imageUrls.push(data.publicUrl)
-      }
+        // save in room_images table
+        const { error: imageError } = await supabase
+          .from("room_images")
+          .insert([
+            {
+              room_id: roomId,
+              image_url: data.publicUrl,
+            },
+          ])
 
-      console.log("IMAGE URLS:", imageUrls)
-
-      // 💾 INSERT ROOM
-      const { data, error } = await supabase.from("rooms").insert([
-        {
-          title,
-          price,
-          location,
-          room_type: roomType,
-          images: imageUrls,
-          owner_id: user.id, // ✅ FIXED COLUMN
-        },
-      ])
-
-      console.log("INSERT DATA:", data)
-      console.log("INSERT ERROR:", error)
-
-      setLoading(false)
-
-      if (error) {
-        alert("Insert failed: " + error.message)
-        return
+        if (imageError) {
+          console.error(imageError)
+          alert("Image save failed")
+          setLoading(false)
+          return
+        }
       }
 
       alert("Room added successfully ✅")
       navigate("/listings")
 
     } catch (err) {
-      console.error("🔥 ERROR:", err)
+      console.error(err)
       alert("Something went wrong")
+    } finally {
       setLoading(false)
     }
   }
@@ -145,15 +148,13 @@ export default function AddRoom() {
           Add New Room
         </h2>
 
-        {/* PACKAGE INFO */}
         <p className="text-center text-gray-600 mb-6">
           Package: <b>{userPackage}</b> (Max {limit} listings)
         </p>
 
-        {/* 🔥 HORIZONTAL LAYOUT */}
         <div className="grid md:grid-cols-2 gap-8">
 
-          {/* LEFT SIDE */}
+          {/* LEFT */}
           <div>
             <input
               placeholder="Room Title"
@@ -190,7 +191,7 @@ export default function AddRoom() {
             </select>
           </div>
 
-          {/* RIGHT SIDE */}
+          {/* RIGHT */}
           <div>
             <label className="block border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-500 transition">
               <p className="text-gray-600">
@@ -209,7 +210,6 @@ export default function AddRoom() {
               />
             </label>
 
-            {/* PREVIEW */}
             {preview.length > 0 && (
               <div className="grid grid-cols-3 gap-2 mt-4">
                 {preview.map((img, index) => (
@@ -234,10 +234,9 @@ export default function AddRoom() {
           </div>
         </div>
 
-        {/* SUBMIT */}
         <button
           disabled={loading}
-          className="w-full mt-6 bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition"
+          className="w-full mt-6 bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700"
         >
           {loading ? "Uploading..." : "Save Room"}
         </button>

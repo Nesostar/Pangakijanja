@@ -20,47 +20,42 @@ export default function Register() {
     setError("")
 
     try {
-      // 🔥 Create auth user
+      // ✅ 1. Create auth user
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
       })
 
-      if (error) {
-        setError(error.message)
-        setLoading(false)
-        return
+      if (error) throw error
+
+      const user = data.user
+
+      if (!user) {
+        throw new Error("User not created")
       }
 
-      if (!data.user) {
-        setError("Registration failed")
-        setLoading(false)
-        return
-      }
-
-      // 🔥 Create profile (IMPORTANT)
+      // ✅ 2. Insert profile
       const { error: profileError } = await supabase
         .from("profiles")
-        .insert([
-          {
-            id: data.user.id,
-            first_name: firstName,
-            last_name: lastName,
-            role: "customer", // ✅ REQUIRED
-          },
-        ])
+        .insert({
+          id: user.id,
+          first_name: firstName,
+          last_name: lastName,
+          role: "customer",
+        })
 
       if (profileError) {
-        setError(profileError.message)
-        setLoading(false)
-        return
+        console.error("PROFILE ERROR:", profileError)
+        throw new Error("Failed to create profile: " + profileError.message)
       }
 
-      alert("Registration successful! Please login.")
+      alert("Registration successful!")
       navigate("/")
 
     } catch (err) {
-      setError("Something went wrong")
+      console.error(err)
+      setError(err.message)
+    } finally {
       setLoading(false)
     }
   }
@@ -116,11 +111,12 @@ export default function Register() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            minLength={6}
           />
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white p-3 rounded-lg"
+            className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 disabled:bg-blue-300"
             disabled={loading}
           >
             {loading ? "Registering..." : "Register"}
@@ -129,7 +125,7 @@ export default function Register() {
 
         <p className="text-center mt-4 text-sm">
           Already have an account?{" "}
-          <Link to="/" className="text-blue-600">
+          <Link to="/" className="text-blue-600 hover:underline">
             Login
           </Link>
         </p>

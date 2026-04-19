@@ -1,121 +1,114 @@
-// src/pages/AdminDashboard.jsx
 import { useEffect, useState } from "react"
+import { supabase } from "../lib/supabase"
+import { useNavigate } from "react-router-dom"
 
 export default function AdminDashboard() {
   const [users, setUsers] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-
-  const fetchUsers = async () => {
-    try {
-      setLoading(true)
-      const res = await fetch("http://localhost:5000/api/admin/users")
-      const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to fetch users")
-      }
-
-      setUsers(data)
-    } catch (err) {
-      console.error(err)
-      setError("Failed to load users")
-    } finally {
-      setLoading(false)
-    }
-  }
+  const navigate = useNavigate()
 
   useEffect(() => {
-    fetchUsers()
+    fetchData()
   }, [])
 
-  const approveDalali = async (id) => {
-    try {
-      const res = await fetch(
-        `http://localhost:5000/api/admin/approve/${id}`,
-        { method: "PUT" }
-      )
-
-      const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data.message || "Approval failed")
-      }
-
-      fetchUsers()
-    } catch (err) {
-      alert("Error approving Dalali")
-      console.error(err)
-    }
+  const fetchData = async () => {
+    const { data } = await supabase.from("profiles").select("*")
+    setUsers(data || [])
   }
 
-  if (loading) {
-    return (
-      <div className="p-6 min-h-screen flex items-center justify-center">
-        <p className="text-lg">Loading users...</p>
-      </div>
-    )
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    navigate("/")
   }
 
-  if (error) {
-    return (
-      <div className="p-6 min-h-screen flex items-center justify-center">
-        <p className="text-red-600">{error}</p>
-      </div>
-    )
-  }
+  // 📊 Analytics
+  const totalUsers = users.length
+  const activeUsers = users.filter(u => u.status !== "deactivated").length
+  const dalali = users.filter(u => u.role === "dalali").length
+  const deactivatedDalali = users.filter(
+    u => u.role === "dalali" && u.status === "deactivated"
+  ).length
 
   return (
-    <div className="p-6 min-h-screen bg-gray-50">
-      <h1 className="text-2xl font-bold mb-6">Admin Panel</h1>
+    <div className="min-h-screen bg-gray-100 p-6">
 
-      {users.length === 0 ? (
-        <div>No users found</div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white rounded shadow">
-            <thead className="bg-gray-200">
-              <tr>
-                <th className="text-left px-4 py-2">Name</th>
-                <th className="text-left px-4 py-2">Email</th>
-                <th className="text-left px-4 py-2">Role</th>
-                <th className="text-left px-4 py-2">Status</th>
-                <th className="text-left px-4 py-2">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((u) => (
-                <tr key={u.id} className="border-b">
-                  <td className="px-4 py-2">
-                    {u.first_name} {u.last_name}
-                  </td>
-                  <td className="px-4 py-2">{u.email}</td>
-                  <td className="px-4 py-2 capitalize">{u.role}</td>
-                  <td className="px-4 py-2">
-                    {u.dalali_request
-                      ? "Pending Dalali Approval"
-                      : u.role === "dalali"
-                      ? "Approved Dalali"
-                      : u.role === "admin"
-                      ? "Administrator"
-                      : "Customer"}
-                  </td>
-                  <td className="px-4 py-2">
-                    {u.dalali_request && (
-                      <button
-                        onClick={() => approveDalali(u.id)}
-                        className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition"
-                      >
-                        Approve
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* Header */}
+      <div className="flex justify-between mb-6">
+        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+
+        <div className="flex gap-3">
+          <button
+            onClick={() => navigate("/admin-users")}
+            className="bg-blue-600 text-white px-4 py-2 rounded"
+          >
+            Manage Users
+          </button>
+
+          <button
+            onClick={handleLogout}
+            className="bg-red-500 text-white px-4 py-2 rounded"
+          >
+            Logout
+          </button>
         </div>
-      )}
+      </div>
+
+      {/* Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+
+        <div className="bg-white p-5 rounded shadow">
+          <p>Total Users</p>
+          <h2 className="text-2xl font-bold">{totalUsers}</h2>
+        </div>
+
+        <div className="bg-white p-5 rounded shadow">
+          <p>Active Users</p>
+          <h2 className="text-2xl font-bold">{activeUsers}</h2>
+        </div>
+
+        <div className="bg-white p-5 rounded shadow">
+          <p>Dalali</p>
+          <h2 className="text-2xl font-bold">{dalali}</h2>
+        </div>
+
+        <div className="bg-white p-5 rounded shadow">
+          <p>Deactivated Dalali</p>
+          <h2 className="text-2xl font-bold">{deactivatedDalali}</h2>
+        </div>
+
+      </div>
+
+      {/* SIMPLE GRAPH (bar style) */}
+      <div className="bg-white p-6 rounded shadow">
+        <h2 className="text-xl mb-4 font-semibold">User Distribution</h2>
+
+        <div className="space-y-3">
+
+          <div>
+            <p>Customers</p>
+            <div className="bg-gray-200 h-4 rounded">
+              <div
+                className="bg-green-500 h-4 rounded"
+                style={{
+                  width: `${(users.filter(u => u.role === "customer").length / totalUsers) * 100 || 0}%`
+                }}
+              />
+            </div>
+          </div>
+
+          <div>
+            <p>Dalali</p>
+            <div className="bg-gray-200 h-4 rounded">
+              <div
+                className="bg-blue-500 h-4 rounded"
+                style={{
+                  width: `${(dalali / totalUsers) * 100 || 0}%`
+                }}
+              />
+            </div>
+          </div>
+
+        </div>
+      </div>
     </div>
   )
 }

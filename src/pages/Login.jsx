@@ -17,31 +17,49 @@ export default function Login() {
     setError("")
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // ✅ Login
+      const { data: userData, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
-      if (error) {
-        setError(error.message)
-        setLoading(false)
-        return
-      }
+      if (error) throw error
 
-      // 🔥 Get role
-      const { data: profile, error: profileError } = await supabase
+      const user = userData.user
+
+      // 🔍 Get profile
+      let { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("role")
-        .eq("id", data.user.id)
+        .select("*")
+        .eq("id", user.id)
         .single()
 
+      // 🔥 AUTO CREATE PROFILE IF MISSING
       if (profileError || !profile) {
-        setError("Profile not found. Contact support.")
-        setLoading(false)
-        return
+        console.warn("Profile missing, creating one...")
+
+        const { error: insertError } = await supabase
+          .from("profiles")
+          .insert({
+            id: user.id,
+            role: "customer",
+          })
+
+        if (insertError) {
+          throw new Error("Profile creation failed")
+        }
+
+        // fetch again
+        const { data: newProfile } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single()
+
+        profile = newProfile
       }
 
-      // ✅ Redirect based on role
+      // ✅ Redirect
       if (profile.role === "admin") {
         navigate("/admin-dashboard")
       } else if (profile.role === "dalali") {
@@ -51,7 +69,9 @@ export default function Login() {
       }
 
     } catch (err) {
-      setError("Something went wrong")
+      console.error(err)
+      setError(err.message)
+    } finally {
       setLoading(false)
     }
   }
@@ -90,7 +110,7 @@ export default function Login() {
 
           <button
             type="submit"
-            className="w-full bg-green-600 text-white p-3 rounded-lg"
+            className="w-full bg-green-600 text-white p-3 rounded-lg disabled:bg-green-300"
             disabled={loading}
           >
             {loading ? "Logging in..." : "Login"}

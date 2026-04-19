@@ -20,6 +20,7 @@ import Notifications from "./pages/Notifications"
 import Account from "./pages/Account"
 import Support from "./pages/Support"
 import Pricing from "./pages/Pricing"
+import AdminUsers from "./pages/AdminUsers"
 
 // Components
 import ProtectedRoute from "./components/ProtectedRoute"
@@ -131,6 +132,10 @@ function App() {
 <Route path="/account" element={<Account />} />
 <Route path="/support" element={<Support />} />
 <Route path="/pricing" element={<Pricing />} />
+<Route
+path="/admin-users"element={<ProtectedRoute adminOnly={true}><AdminUsers /></ProtectedRoute>
+  }
+/>
       {/* FALLBACK */}
       <Route path="*" element={<Navigate to="/" replace />} />
 
