@@ -21,6 +21,7 @@ import Account from "./pages/Account"
 import Support from "./pages/Support"
 import Pricing from "./pages/Pricing"
 import AdminUsers from "./pages/AdminUsers"
+import RoomDetails from "./pages/RoomDetails"
 
 // Components
 import ProtectedRoute from "./components/ProtectedRoute"
@@ -136,6 +137,7 @@ function App() {
 path="/admin-users"element={<ProtectedRoute adminOnly={true}><AdminUsers /></ProtectedRoute>
   }
 />
+<Route path="/room/:id" element={<RoomDetails />} />
       {/* FALLBACK */}
       <Route path="*" element={<Navigate to="/" replace />} />
 
