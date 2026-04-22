@@ -49,7 +49,7 @@ export default function CustomerDashboard() {
           <button onClick={() => navigate("/dashboard")}>Platform</button>
           <button onClick={() => navigate("/rooms")}>Rooms</button>
           <button onClick={() => navigate("/support")}>Support</button>
-          <button onClick={() => navigate("/pricing")}>Pricing</button>
+          <button onClick={() => navigate("/notifications")}>Notifications</button>
         </div>
 
         <div className="flex gap-4">
@@ -134,14 +134,14 @@ export default function CustomerDashboard() {
         </div>
 
         <div
-          onClick={() => navigate("/notifications")}
+          onClick={() => navigate("/pricing")}
           className="p-6 bg-white/80 backdrop-blur-lg rounded-2xl shadow-md hover:shadow-xl transition cursor-pointer"
         >
           <h2 className="font-semibold text-xl mb-3 text-blue-900">
-            Notifications
+            Pricing
           </h2>
           <p className="text-gray-600">
-            Stay updated with booking alerts and messages.
+            Stay updated with pricing alerts and messages.
           </p>
         </div>
 
