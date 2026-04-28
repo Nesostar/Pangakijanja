@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { supabase } from "../lib/supabase"
 import { Link, useNavigate } from "react-router-dom"
+import logo from "../assets/logo.png"
 
 export default function Register() {
   const [email, setEmail] = useState("")
@@ -20,7 +21,6 @@ export default function Register() {
     setError("")
 
     try {
-      // ✅ 1. Create auth user
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -34,7 +34,6 @@ export default function Register() {
         throw new Error("User not created")
       }
 
-      // ✅ 2. Insert profile
       const { error: profileError } = await supabase
         .from("profiles")
         .insert({
@@ -45,8 +44,7 @@ export default function Register() {
         })
 
       if (profileError) {
-        console.error("PROFILE ERROR:", profileError)
-        throw new Error("Failed to create profile: " + profileError.message)
+        throw new Error(profileError.message)
       }
 
       alert("Registration successful!")
@@ -61,25 +59,38 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white shadow-lg rounded-xl p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center mb-6">
-          Create Account
-        </h2>
+    <div className="min-h-screen flex items-center justify-center px-4 
+      bg-gradient-to-br from-[#f3e8ff] via-[#e0f2fe] to-[#fde68a]">
 
+      <div className="bg-white/80 backdrop-blur-lg shadow-xl rounded-2xl p-6 md:p-8 w-full max-w-md">
+
+        {/* 🔥 LOGO */}
+        <div className="flex flex-col items-center mb-6">
+  <img
+    src={logo}   // 🔥 your logo file
+    alt="PangaKijanja Logo"
+    className="w-50 h-50 object-contain"
+  />
+  <p className="text-sm text-gray-500">
+    Create your account
+  </p>
+</div>
+
+        {/* ERROR */}
         {error && (
-          <div className="bg-red-100 text-red-700 p-3 rounded mb-4">
+          <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm">
             {error}
           </div>
         )}
 
+        {/* FORM */}
         <form onSubmit={handleRegister} className="space-y-4">
 
-          <div className="flex gap-4">
+          <div className="flex flex-col md:flex-row gap-3">
             <input
               type="text"
               placeholder="First Name"
-              className="w-1/2 border p-3 rounded-lg"
+              className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-300 outline-none"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
               required
@@ -88,7 +99,7 @@ export default function Register() {
             <input
               type="text"
               placeholder="Last Name"
-              className="w-1/2 border p-3 rounded-lg"
+              className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-300 outline-none"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
               required
@@ -98,7 +109,7 @@ export default function Register() {
           <input
             type="email"
             placeholder="Email"
-            className="w-full border p-3 rounded-lg"
+            className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-300 outline-none"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -107,7 +118,7 @@ export default function Register() {
           <input
             type="password"
             placeholder="Password"
-            className="w-full border p-3 rounded-lg"
+            className="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-300 outline-none"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -116,19 +127,21 @@ export default function Register() {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 disabled:bg-blue-300"
+            className="w-full bg-blue-900 text-white p-3 rounded-lg hover:bg-blue-800 transition disabled:bg-blue-300"
             disabled={loading}
           >
-            {loading ? "Registering..." : "Register"}
+            {loading ? "Registering..." : "Create Account"}
           </button>
         </form>
 
-        <p className="text-center mt-4 text-sm">
+        {/* LINK */}
+        <p className="text-center mt-4 text-sm text-gray-600">
           Already have an account?{" "}
-          <Link to="/" className="text-blue-600 hover:underline">
+          <Link to="/" className="text-blue-900 font-semibold hover:underline">
             Login
           </Link>
         </p>
+
       </div>
     </div>
   )
