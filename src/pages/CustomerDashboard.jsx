@@ -93,7 +93,7 @@ export default function CustomerDashboard() {
           <button onClick={() => navigate("/rooms")} className="block w-full text-left">Rooms</button>
           <button onClick={() => navigate("/support")} className="block w-full text-left">Support</button>
           <button onClick={() => navigate("/notifications")} className="block w-full text-left">Notifications</button>
-          <button onClick={() => navigate("/payment")} className="block w-full text-left">Upgrade to Dalali</button>
+          <button onClick={() => navigate("/upgrade")} className="block w-full text-left">Upgrade to Dalali</button>
           <button onClick={() => navigate("/account")} className="block w-full text-left">Account</button>
           <button onClick={handleLogout} className="block w-full text-left text-red-500">Logout</button>
         </div>
